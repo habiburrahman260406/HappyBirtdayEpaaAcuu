@@ -1,0 +1,1672 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Puzzle Cam — Gesture Capture</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Noto+Serif:wght@400;700&family=Nunito+Sans:wght@400;600;700&family=Nanum+Pen+Script&display=swap"
+    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+    rel="stylesheet" />
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+
+    .scruffy-border {
+      mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,0 L100,0 L100,100 L0,100 Z" fill="black" /><path d="M0,5 Q5,2 10,5 T20,5 T30,5 T40,5 T50,5 T60,5 T70,5 T80,5 T90,5 T100,5" fill="none" stroke="white" stroke-width="10" /></svg>');
+    }
+
+    .paper-texture {
+      background-color: #f2f7f8;
+      background-image: url("https://www.transparenttextures.com/patterns/felt.png");
+    }
+
+    .desk-texture {
+      background-color: #dce8eb;
+      background-image: url("https://www.transparenttextures.com/patterns/wood-pattern.png");
+    }
+
+    .washi-tape {
+      background: rgba(76, 116, 126, 0.32);
+      box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .typewriter-font {
+      font-family: 'Courier Prime', monospace;
+    }
+
+    .script-font {
+      font-family: 'Nanum Pen Script', cursive;
+    }
+
+    @keyframes subtle-float {
+
+      0%,
+      100% {
+        transform: translateY(0) rotate(-1deg);
+      }
+
+      50% {
+        transform: translateY(-5px) rotate(0.5deg);
+      }
+    }
+
+    .float-item {
+      animation: subtle-float 6s ease-in-out infinite;
+    }
+
+    .typewriter-input {
+      border: none;
+      border-bottom: 1px solid #78929a;
+      background: transparent;
+      font-family: 'Courier Prime', monospace;
+    }
+
+    .typewriter-input:focus {
+      outline: none;
+      border-bottom: 2px solid #4c747e;
+    }
+
+    @keyframes print-slide {
+      0% {
+        transform: translateY(-100%);
+        opacity: 0;
+      }
+
+      100% {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .animate-print {
+      animation: print-slide 2s ease-out forwards;
+    }
+
+    .music-toggle {
+      position: fixed;
+      right: 1.25rem;
+      bottom: 1.25rem;
+      z-index: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.7rem 0.9rem;
+      color: #f4f9fa;
+      background: #4c747e;
+      border: 1px solid rgba(244, 249, 250, 0.35);
+      border-radius: 999px;
+      box-shadow: 0 8px 20px rgba(35, 72, 80, 0.25);
+      font-family: 'Nunito Sans', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      transition: transform 180ms ease, background 180ms ease;
+    }
+
+    .music-toggle:hover {
+      transform: translateY(-2px);
+      background: #385f68;
+    }
+
+    .music-toggle.is-playing .material-symbols-outlined {
+      animation: music-pulse 1.2s ease-in-out infinite;
+    }
+
+    @keyframes music-pulse {
+      50% { transform: scale(1.15); }
+    }
+
+    .photo-strip-shadow {
+      box-shadow: 0 10px 25px -5px rgba(64, 48, 32, 0.2);
+    }
+
+    .birthday-letter-modal {
+      background: rgba(27, 28, 26, 0.58);
+      backdrop-filter: blur(8px);
+    }
+
+    .birthday-letter {
+      background: #f4f9fa;
+      background-image: linear-gradient(rgba(76, 116, 126, 0.07) 1px, transparent 1px);
+      background-size: 100% 2rem;
+      box-shadow: 0 24px 70px rgba(64, 48, 32, 0.28);
+      animation: letter-open 0.45s ease-out both;
+    }
+
+    @keyframes letter-open {
+      from { opacity: 0; transform: translateY(18px) rotate(-2deg) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) rotate(0) scale(1); }
+    }
+
+    /* Modern landing-page layer */
+    #landingPage {
+      background:
+        radial-gradient(circle at 12% 18%, rgba(186, 220, 226, 0.42), transparent 28%),
+        radial-gradient(circle at 88% 72%, rgba(199, 218, 207, 0.34), transparent 30%),
+        #f2f7f8;
+    }
+
+    #landingPage::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.42;
+      background-image: linear-gradient(rgba(80, 68, 68, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(80, 68, 68, 0.035) 1px, transparent 1px);
+      background-size: 34px 34px;
+      mask-image: linear-gradient(to bottom, black, transparent 88%);
+    }
+
+    #landingPage > header {
+      top: 1.25rem;
+    }
+
+    #landingPage > header > div {
+      padding: 0.8rem 1.25rem 0.8rem 1.5rem;
+      background: rgba(255, 255, 255, 0.72);
+      border-color: rgba(76, 116, 126, 0.18);
+      box-shadow: 0 12px 30px rgba(64, 48, 32, 0.08);
+    }
+
+    #landingPage > header a:first-child {
+      font-size: 0.9rem;
+      letter-spacing: 0.02em;
+    }
+
+    #landingPage nav a {
+      position: relative;
+      padding: 0.55rem 0.15rem;
+      transition: color 180ms ease, transform 180ms ease;
+    }
+
+    #landingPage nav a:hover {
+      transform: translateY(-1px);
+    }
+
+    #hero {
+      background: linear-gradient(180deg, transparent 70%, rgba(255, 255, 255, 0.4));
+    }
+
+    #hero > div:nth-of-type(2) {
+      border: 1px solid rgba(76, 116, 126, 0.18);
+      border-radius: 1.25rem;
+      background: rgba(255, 255, 255, 0.78);
+      box-shadow: 0 30px 80px rgba(64, 48, 32, 0.14), 0 4px 12px rgba(64, 48, 32, 0.05);
+      backdrop-filter: blur(12px);
+    }
+
+    #hero h1 {
+      font-size: clamp(2.5rem, 5.2vw, 5rem);
+      letter-spacing: 0.015em;
+      text-shadow: 2px 3px 0 rgba(76, 116, 126, 0.1);
+    }
+
+    #landingStartBtn {
+      border-radius: 0.75rem;
+      box-shadow: 0 12px 24px rgba(68, 98, 121, 0.22);
+    }
+
+    #how-it-works,
+    #memories {
+      background: rgba(245, 243, 239, 0.72);
+    }
+
+    #memories {
+      background: linear-gradient(180deg, #edf4f5 0%, #e3eef0 100%);
+    }
+
+    .memory-gallery {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      grid-auto-rows: 92px;
+      gap: 1rem;
+    }
+
+    .memory-card {
+      position: relative;
+      min-height: 0;
+      overflow: hidden;
+      border: 1px solid rgba(76, 116, 126, 0.18);
+      border-radius: 1rem;
+      background: #dce8eb;
+      box-shadow: 0 14px 28px rgba(35, 72, 80, 0.1);
+      isolation: isolate;
+    }
+
+    .memory-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background: linear-gradient(180deg, transparent 46%, rgba(17, 37, 42, 0.72));
+      pointer-events: none;
+    }
+
+    .memory-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 500ms cubic-bezier(0.16, 1, 0.3, 1), filter 500ms ease;
+    }
+
+    .memory-card:hover img {
+      transform: scale(1.06);
+      filter: saturate(1.08) contrast(1.03);
+    }
+
+    .memory-card figcaption {
+      position: absolute;
+      right: 1rem;
+      bottom: 0.85rem;
+      left: 1rem;
+      z-index: 2;
+      color: #f4f9fa;
+      font-family: 'Nunito Sans', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .memory-card:nth-child(1) { grid-column: span 5; grid-row: span 4; }
+    .memory-card:nth-child(2) { grid-column: span 7; grid-row: span 4; }
+    .memory-card:nth-child(3) { grid-column: span 4; grid-row: span 3; }
+    .memory-card:nth-child(4) { grid-column: span 4; grid-row: span 3; }
+    .memory-card:nth-child(5) { grid-column: span 4; grid-row: span 3; }
+    .memory-card:nth-child(6) { grid-column: span 7; grid-row: span 4; }
+    .memory-card:nth-child(7) { grid-column: span 5; grid-row: span 4; }
+    .memory-card:nth-child(8) { grid-column: span 4; grid-row: span 3; }
+    .memory-card:nth-child(9) { grid-column: span 4; grid-row: span 3; }
+    .memory-card:nth-child(10) { grid-column: span 4; grid-row: span 3; }
+
+    @media (max-width: 700px) {
+      .memory-gallery {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-auto-rows: 150px;
+        gap: 0.75rem;
+      }
+
+      .memory-card:nth-child(n) {
+        grid-column: span 1;
+        grid-row: span 1;
+      }
+
+      .memory-card:nth-child(1),
+      .memory-card:nth-child(2),
+      .memory-card:nth-child(6),
+      .memory-card:nth-child(7) {
+        grid-column: span 2;
+        grid-row: span 2;
+      }
+    }
+
+    #features {
+      background: rgba(251, 249, 245, 0.88);
+    }
+
+    #features .group,
+    #memories .relative {
+      border-color: rgba(76, 116, 126, 0.16);
+      box-shadow: 0 14px 30px rgba(64, 48, 32, 0.07);
+      transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+    }
+
+    #features .group:hover,
+    #memories .relative:hover {
+      border-color: rgba(76, 116, 126, 0.34);
+      box-shadow: 0 20px 40px rgba(64, 48, 32, 0.12);
+    }
+
+    #contact > div > div {
+      background: rgba(255, 255, 255, 0.76);
+      border-color: rgba(76, 116, 126, 0.18);
+      box-shadow: 0 22px 55px rgba(64, 48, 32, 0.12);
+      backdrop-filter: blur(10px);
+    }
+
+    #birthdayLetterBtn,
+    #contact a {
+      border-radius: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    @media (max-width: 640px) {
+      #landingPage > header {
+        top: 0.75rem;
+      }
+
+      #landingPage > header > div {
+        padding: 0.7rem 0.9rem 0.7rem 1rem;
+      }
+
+      #landingPage > header a:first-child {
+        font-size: 0.78rem;
+      }
+
+      #hero > div:nth-of-type(2) {
+        width: min(92vw, 34rem);
+      }
+    }
+  </style>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-container-lowest": "#ffffff",
+            "surface-container": "#e7f0f2",
+            "on-surface-variant": "#3f555b",
+            "outline": "#78929a",
+            "primary": "#4c747e",
+            "tertiary-fixed": "#dce8d9",
+            "on-error-container": "#93000a",
+            "tertiary": "#66806f",
+            "surface-bright": "#f2f7f8",
+            "background": "#f2f7f8",
+            "outline-variant": "#bfd2d6",
+            "tertiary-container": "#cfe0d1",
+            "on-background": "#172529",
+            "on-primary-fixed": "#16343a",
+            "surface-dim": "#dce8eb",
+            "on-primary-fixed-variant": "#365b63",
+            "secondary": "#5b7892",
+            "error-container": "#ffdad6",
+            "on-primary": "#ffffff",
+            "tertiary-fixed-dim": "#c8c8b0",
+            "surface-container-high": "#eae8e4",
+            "on-secondary-container": "#48667d",
+            "on-secondary-fixed-variant": "#2b4a60",
+            "on-secondary": "#ffffff",
+            "surface": "#f2f7f8",
+            "on-tertiary-fixed": "#1b1d0e",
+            "on-tertiary-fixed-variant": "#474836",
+            "inverse-primary": "#ecbaba",
+            "error": "#ba1a1a",
+            "surface-variant": "#e4e2de",
+            "on-error": "#ffffff",
+            "on-primary-container": "#416770",
+            "primary-fixed": "#c9e5e9",
+            "secondary-container": "#d2e5f2",
+            "surface-tint": "#4c747e",
+            "on-surface": "#172529",
+            "on-secondary-fixed": "#001e2f",
+            "secondary-fixed": "#cae6ff",
+            "primary-fixed-dim": "#acd0d5",
+            "on-tertiary": "#ffffff",
+            "inverse-on-surface": "#f2f0ed",
+            "on-tertiary-container": "#48604f",
+            "surface-container-low": "#edf4f5",
+            "inverse-surface": "#263b40",
+            "secondary-fixed-dim": "#b8d2e4",
+            "primary-container": "#c9e5e9",
+            "surface-container-highest": "#dce8eb"
+          },
+          "fontFamily": {
+            "label-ui": ["Nunito Sans"],
+            "headline-md": ["Courier Prime"],
+            "body-sm": ["Noto Serif"],
+            "body-lg": ["Noto Serif"],
+            "display-lg": ["Courier Prime"]
+          },
+        },
+      },
+    }
+  </script>
+  <link rel="stylesheet" href="style.css" />
+
+  <style>
+    .custom-cursor {
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      color: #4c747e;
+      transition: transform 0.1s ease-out;
+    }
+
+    .washi-tape {
+      background-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1) 10px, rgba(0, 0, 0, 0.05) 10px, rgba(0, 0, 0, 0.05) 20px);
+      opacity: 0.8;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .stitched-border {
+      border: 2px dashed rgba(255, 255, 255, 0.4);
+      border-radius: 0.75rem;
+    }
+
+    .typewriter-text {
+      overflow: hidden;
+      border-right: .15em solid #4c747e;
+      white-space: nowrap;
+      margin: 0 auto;
+      letter-spacing: .15em;
+      animation: typing 3.5s steps(40, end), blink-caret .75s step-end infinite;
+    }
+
+    @keyframes typing {
+      from {
+        width: 0
+      }
+
+      to {
+        width: 100%
+      }
+    }
+
+    @keyframes blink-caret {
+
+      from,
+      to {
+        border-color: transparent
+      }
+
+      50% {
+        border-color: #4c747e;
+      }
+    }
+
+    @keyframes pulse-custom {
+      0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(68, 98, 121, 0.4);
+      }
+
+      70% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 10px rgba(68, 98, 121, 0);
+      }
+
+      100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(68, 98, 121, 0);
+      }
+    }
+
+    .animate-pulse-btn {
+      animation: pulse-custom 2s infinite;
+    }
+
+    .floating {
+      animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0% {
+        transform: translate(0, 0px) rotate(var(--rot-start));
+      }
+
+      50% {
+        transform: translate(0, -15px) rotate(var(--rot-mid));
+      }
+
+      100% {
+        transform: translate(0, 0px) rotate(var(--rot-start));
+      }
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+  </style>
+
+</head>
+
+<body class="desk-texture min-h-screen flex flex-col items-center justify-center overflow-hidden">
+
+  <audio id="romanticMusic" loop preload="auto" autoplay>
+    <source src="KOMANG%20-%20RAIM%20LAODE%20LYRIC%20OFFICIAL.mp3" type="audio/mpeg" />
+  </audio>
+  <button id="musicToggle" class="music-toggle" type="button" aria-label="Putar musik romantis" aria-pressed="false">
+    <span class="material-symbols-outlined" aria-hidden="true">music_off</span>
+    <span class="music-label">Musik mati</span>
+  </button>
+
+  <section id="birthdayIntro" class="birthday-intro" aria-label="Ucapan ulang tahun pembuka">
+    <div class="intro-stars" aria-hidden="true"></div>
+    <div class="intro-confetti" aria-hidden="true">
+      <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+    </div>
+    <div class="intro-content">
+      <p class="intro-kicker">A little surprise for</p>
+      <h1>Happy Birthday,<br><em>Epaa!</em></h1>
+      <p class="intro-note">Hari ini semesta ikut merayakan kamu.</p>
+      <div class="birthday-cake" aria-label="Kue ulang tahun dengan lilin">
+        <button id="candleBtn" class="candle" aria-label="Tiup lilin ulang tahun">
+          <span class="flame"></span>
+          <span class="wick"></span>
+        </button>
+        <div class="cake-top"><span></span><span></span><span></span><span></span></div>
+        <div class="cake-body"><b></b><b></b><b></b></div>
+        <div class="cake-plate"></div>
+      </div>
+      <p id="candleHint" class="candle-hint">klik lilinnya, buat harapan ✦</p>
+      <button id="enterBirthdayBtn" class="enter-birthday" disabled>
+        <span>Masuk ke kejutan</span>
+        <span aria-hidden="true">↗</span>
+      </button>
+    </div>
+  </section>
+
+  <div class="custom-cursor flex items-center justify-center" id="cursor">
+    <span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">favorite</span>
+  </div>
+
+  <div id="landingPage"
+    class="fixed inset-0 z-[200] bg-background overflow-y-auto overflow-x-hidden flex flex-col font-body-lg text-on-surface">
+    <header class="fixed top-4 left-0 w-full z-[210] px-4 md:px-8">
+      <div
+        class="flex justify-between items-center w-full max-w-[1400px] mx-auto px-8 py-4 bg-background/90 backdrop-blur-md shadow-md rounded-full border border-outline-variant/20">
+        <a class="flex items-center gap-2 font-headline-md text-headline-md text-primary italic transition-opacity hover:opacity-80 active:-rotate-1 active:scale-95 transition-transform"
+          href="#">
+          <span class="material-symbols-outlined" data-original-icon="auto_awesome">auto_awesome</span>
+          <span>Happy Birthday Bocil epaa</span>
+        </a>
+        <nav
+          class="hidden md:flex gap-[clamp(1rem,2vw,2rem)] font-label-ui text-[10px] md:text-[11px] uppercase tracking-widest">
+          <a class="text-secondary font-bold hover:opacity-80 transition-opacity nav-home-btn"
+            href="#landingPage">home</a>
+          <a class="text-on-surface-variant hover:text-primary transition-colors" href="#how-it-works">how it works</a>
+          <a class="text-on-surface-variant hover:text-primary transition-colors" href="#features">features</a>
+          <a class="text-on-surface-variant hover:text-primary transition-colors nav-memories-btn"
+            href="#memories">memories</a>
+          <a class="text-on-surface-variant hover:text-primary transition-colors nav-contact-btn"
+            href="#contact">contact</a>
+        </nav>
+        <button class="md:hidden material-symbols-outlined text-on-surface">menu</button>
+      </div>
+    </header>
+    <main class="flex-grow">
+      <!-- Hero Section -->
+      <section id="hero"
+        class="relative min-h-[100vh] min-h-[100dvh] flex items-center justify-center overflow-hidden pt-20 pb-10">
+        <div class="absolute inset-0 pointer-events-none">
+          <div
+            class="hidden lg:block floating polaroid absolute top-[20%] left-[5%] rotate-[-4deg] w-[clamp(150px,13vw,230px)] aspect-[3/4]"
+            style="--rot-start: -4deg; --rot-mid: -2deg;">
+            <div class="w-full h-full bg-surface-variant relative overflow-hidden shadow-xl">
+              <img class="w-full h-full object-cover grayscale opacity-90 object-center max-w-full"
+                src="gambar/gambar1.jpg" alt="Potret Efra" />
+              <div
+                class="absolute top-[-5px] left-1/2 -translate-x-1/2 w-16 h-6 washi-tape bg-secondary/30 rotate-[2deg]">
+              </div>
+            </div>
+          </div>
+          <div
+            class="hidden lg:block floating polaroid absolute bottom-[15%] right-[5%] rotate-[3deg] w-[clamp(150px,13vw,230px)] aspect-[3/4]"
+            style="--rot-start: 3deg; --rot-mid: 5deg;">
+            <div class="w-full h-full bg-surface-variant relative overflow-hidden shadow-xl">
+              <img class="w-full h-full object-cover opacity-80 object-center max-w-full"
+                src="gambar/gambar2.JPG" alt="Kenangan bersama" />
+              <div
+                class="absolute top-[-5px] left-1/2 -translate-x-1/2 w-12 h-5 washi-tape bg-primary/20 rotate-[-3deg]">
+              </div>
+            </div>
+          </div>
+          <div class="absolute top-[35%] right-[10%] opacity-20">
+            <span class="material-symbols-outlined text-[120px] text-primary"
+              style="font-variation-settings: 'wght' 100;">extension</span>
+          </div>
+        </div>
+        <div
+          class="relative z-10 w-[min(90vw,900px)] min-h-[300px] sm:min-h-[380px] bg-surface-bright paper-sheet rounded-lg py-10 px-6 sm:py-[60px] sm:px-[40px] flex flex-col items-center justify-center text-center border border-outline-variant/30 shadow-2xl mx-2 sm:mx-4">
+          <div
+            class="absolute top-[20px] right-[30px] w-[70px] h-6 washi-tape bg-secondary/40 rotate-[5deg] z-20 pointer-events-none">
+          </div>
+          <div class="mb-[clamp(0.8rem,1.5vh,1.5rem)]">
+            <div class="relative inline-block max-w-full">
+              <h1
+                class="font-display-lg text-3xl sm:text-4xl md:text-5xl leading-tight text-on-surface typewriter-text mb-3 sm:mb-4">
+                Scrapbook Puzzle
+              </h1>
+            </div>
+            <div
+              class="flex items-center justify-center gap-4 text-on-surface-variant font-body-sm italic text-[clamp(0.75rem,0.9vw,0.95rem)]">
+              <span class="w-12 h-[1px] bg-outline-variant"></span>
+              <p class="max-w-md">Take The Moment And Make it Capture With Me</p>
+              <span class="w-12 h-[1px] bg-outline-variant"></span>
+            </div>
+          </div>
+          <button id="landingStartBtn"
+            class="group relative flex items-center justify-center px-[clamp(1.8rem,3vw,2.5rem)] py-[clamp(0.6rem,1.2vw,0.9rem)] bg-secondary text-on-secondary rounded-xl font-label-ui text-[clamp(0.8rem,1vw,0.95rem)] transition-all hover:scale-105 active:scale-95 stitched-border shadow-lg animate-pulse-btn">
+            <span class="relative z-10 flex items-center gap-3">
+              START CREATING
+              <span
+                class="material-symbols-outlined transition-transform group-hover:rotate-12 text-lg">photo_camera</span>
+            </span>
+            <div class="absolute inset-0 bg-primary opacity-0 group-hover:opacity-10 transition-opacity rounded-xl">
+            </div>
+          </button>
+          <div
+            class="mt-[clamp(1rem,2vh,1.8rem)] flex flex-wrap justify-center gap-[clamp(0.6rem,1vw,1rem)] opacity-60">
+            <div class="flex items-center gap-2 bg-secondary/10 px-4 py-2 rounded-full border border-secondary/20">
+              <span class="material-symbols-outlined text-sm text-secondary">attach_file</span>
+              <span class="font-label-ui text-[clamp(0.7rem,0.9vw,0.8rem)] text-secondary">Memories.pdf</span>
+            </div>
+            <div class="flex items-center gap-2 bg-secondary/10 px-4 py-2 rounded-full border border-secondary/20">
+              <span class="material-symbols-outlined text-sm text-secondary">label</span>
+              <span class="font-label-ui text-[clamp(0.7rem,0.9vw,0.8rem)] text-secondary">2026 Archive</span>
+            </div>
+          </div>
+        </div>
+        <div
+          class="absolute bottom-[clamp(1rem,3vh,2.5rem)] left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-on-surface-variant/50 animate-bounce">
+          <span class="font-label-ui text-[clamp(0.55rem,0.8vw,0.65rem)] uppercase tracking-widest">scroll</span>
+          <span class="material-symbols-outlined text-[clamp(1rem,1.5vw,1.5rem)]">expand_more</span>
+        </div>
+      </section>
+      <!-- How it Works Section -->
+      <section class="py-16 md:py-32 px-6 sm:px-page-margin bg-surface-container-low relative" id="how-it-works">
+        <div class="max-w-[1200px] mx-auto">
+          <div class="text-center mb-16 md:mb-24">
+            <h2 class="font-headline-md text-2xl md:text-3xl lg:text-4xl text-primary mb-4 italic">How it Works</h2>
+            <p class="text-on-surface-variant text-sm md:text-base max-w-2xl mx-auto">Piece together your memories in three simple, tactile
+              steps.</p>
+          </div>
+          <div class="relative">
+            <!-- Vertical Line -->
+            <div
+              class="absolute left-1/2 top-0 bottom-0 w-[2px] bg-outline-variant/30 hidden md:block -translate-x-1/2">
+            </div>
+            <div class="space-y-24">
+              <!-- Step 1 -->
+              <div class="relative flex flex-col md:flex-row items-center gap-6 md:gap-12 group">
+                <div class="md:w-1/2 md:text-right text-center">
+                  <span class="text-secondary font-display-lg text-4xl opacity-20 block mb-2">01</span>
+                  <h3 class="font-headline-md text-xl md:text-2xl text-on-surface mb-4">Choose Your Photos</h3>
+                  <p class="text-on-surface-variant text-sm md:text-base">Select the snapshots that tell your unique story. From digital
+                    uploads to vintage scans, everything has a place here.</p>
+                </div>
+                <div
+                  class="absolute left-1/2 -translate-x-1/2 w-4 h-4 bg-secondary rounded-full border-4 border-surface-container-low hidden md:block z-10 group-hover:scale-150 transition-transform">
+                </div>
+                <div class="md:w-1/2 flex justify-center md:justify-start">
+                  <div
+                    class="w-64 h-48 bg-surface border border-outline-variant/30 p-4 rotate-[-2deg] shadow-md transition-transform group-hover:rotate-0">
+                    <div class="w-full h-full bg-secondary-container/20 flex items-center justify-center">
+                      <span class="material-symbols-outlined text-4xl text-secondary">add_a_photo</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Step 2 -->
+              <div class="relative flex flex-col md:flex-row-reverse items-center gap-6 md:gap-12 group">
+                <div class="md:w-1/2 text-center md:text-left">
+                  <span class="text-secondary font-display-lg text-4xl opacity-20 block mb-2">02</span>
+                  <h3 class="font-headline-md text-xl md:text-2xl text-on-surface mb-4">Solve the Puzzle</h3>
+                  <p class="text-on-surface-variant text-sm md:text-base">Drag and drop your memories like real scrapbook fragments. Our
+                    tactile interface feels like paper under your fingertips.</p>
+                </div>
+                <div
+                  class="absolute left-1/2 -translate-x-1/2 w-4 h-4 bg-secondary rounded-full border-4 border-surface-container-low hidden md:block z-10 group-hover:scale-150 transition-transform">
+                </div>
+                <div class="md:w-1/2 flex justify-center md:justify-end">
+                  <div
+                    class="w-64 h-48 bg-surface border border-outline-variant/30 p-4 rotate-[3deg] shadow-md transition-transform group-hover:rotate-0">
+                    <div class="w-full h-full bg-primary-container/20 flex items-center justify-center">
+                      <span class="material-symbols-outlined text-4xl text-primary">extension</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Step 3 -->
+              <div class="relative flex flex-col md:flex-row items-center gap-6 md:gap-12 group">
+                <div class="md:w-1/2 md:text-right text-center">
+                  <span class="text-secondary font-display-lg text-4xl opacity-20 block mb-2">03</span>
+                  <h3 class="font-headline-md text-xl md:text-2xl text-on-surface mb-4">Export & Share</h3>
+                  <p class="text-on-surface-variant text-sm md:text-base">Once your masterpiece is complete, save it as a high-quality PDF or
+                    share your digital archive with loved ones.</p>
+                </div>
+                <div
+                  class="absolute left-1/2 -translate-x-1/2 w-4 h-4 bg-secondary rounded-full border-4 border-surface-container-low hidden md:block z-10 group-hover:scale-150 transition-transform">
+                </div>
+                <div class="md:w-1/2 flex justify-center md:justify-start">
+                  <div
+                    class="w-64 h-48 bg-surface border border-outline-variant/30 p-4 rotate-[-1deg] shadow-md transition-transform group-hover:rotate-0">
+                    <div class="w-full h-full bg-tertiary-container/20 flex items-center justify-center">
+                      <span class="material-symbols-outlined text-4xl text-tertiary">ios_share</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- Features Section -->
+      <section class="py-32 px-page-margin bg-background overflow-hidden relative" id="features">
+        <div class="floating polaroid absolute top-[10%] right-[-5%] rotate-[10deg] w-40 h-56 opacity-30"
+          style="--rot-start: 10deg; --rot-mid: 12deg;">
+          <div class="w-full h-full bg-surface-variant shadow-lg"></div>
+        </div>
+        <div class="max-w-[1200px] mx-auto">
+          <div class="text-center mb-24">
+            <h2 class="font-headline-md text-headline-md text-primary mb-4 italic">The Crafting Kit</h2>
+            <p class="text-on-surface-variant">Tools designed for the nostalgic soul.</p>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+            <!-- Feature 1 -->
+            <div
+              class="bg-surface-bright p-8 rounded-lg border border-outline-variant/30 shadow-sm hover:shadow-xl transition-shadow relative group">
+              <div class="absolute -top-4 left-6 w-16 h-6 washi-tape bg-secondary/30 rotate-[-5deg]"></div>
+              <span class="material-symbols-outlined text-secondary text-4xl mb-6 block">texture</span>
+              <h4 class="font-label-ui text-lg mb-3">Vintage Textures</h4>
+              <p class="text-body-sm text-on-surface-variant leading-relaxed">Choose from dozens of paper types, from
+                yellowed newsprint to high-quality watercolor stock.</p>
+            </div>
+            <!-- Feature 2 -->
+            <div
+              class="bg-surface-bright p-8 rounded-lg border border-outline-variant/30 shadow-sm hover:shadow-xl transition-shadow relative group md:translate-y-8">
+              <div class="absolute -top-4 left-6 w-16 h-6 washi-tape bg-primary/20 rotate-[3deg]"></div>
+              <span class="material-symbols-outlined text-primary text-4xl mb-6 block">history_edu</span>
+              <h4 class="font-label-ui text-lg mb-3">Handwritten Captions</h4>
+              <p class="text-body-sm text-on-surface-variant leading-relaxed">Add personalized notes with our library of
+                handwritten-style scripts and fountain pen brushes.</p>
+            </div>
+            <!-- Feature 3 -->
+            <div
+              class="bg-surface-bright p-8 rounded-lg border border-outline-variant/30 shadow-sm hover:shadow-xl transition-shadow relative group">
+              <div class="absolute -top-4 left-6 w-16 h-6 washi-tape bg-tertiary/20 rotate-[-2deg]"></div>
+              <span class="material-symbols-outlined text-tertiary text-4xl mb-6 block">filter_vintage</span>
+              <h4 class="font-label-ui text-lg mb-3">Stickers & Washi</h4>
+              <p class="text-body-sm text-on-surface-variant leading-relaxed">Decorate your layouts with digital washi
+                tape, pressed flowers, and vintage stamps.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Memories Section -->
+      <section class="py-24 md:py-32 px-6 md:px-page-margin relative" id="memories">
+        <div class="max-w-[1200px] mx-auto">
+          <div class="mb-12 flex flex-col items-start justify-between gap-5 md:mb-16 md:flex-row md:items-end">
+            <div>
+              <p class="mb-3 font-label-ui text-xs font-bold uppercase tracking-[0.24em] text-secondary">A collection of us</p>
+              <h2 class="font-headline-md text-3xl text-primary italic md:text-5xl">Our Memories</h2>
+            </div>
+            <p class="max-w-md text-sm leading-7 text-on-surface-variant md:text-right">Potongan kecil dari hari-hari yang terasa lebih indah karena dijalani bersama.</p>
+          </div>
+
+          <div class="memory-gallery">
+            <figure class="memory-card"><img src="gambar/gambar2.JPG" alt="Bermain bersama di taman bermain" loading="lazy" /><figcaption>Two of us</figcaption></figure>
+            <figure class="memory-card"><img src="gambar/IMG_3655.JPG" alt="Momen bersama di tempat wisata" loading="lazy" /><figcaption>Little adventures</figcaption></figure>
+            <figure class="memory-card"><img src="gambar/IMG_5108.PNG" alt="Tangan yang saling menggenggam" loading="lazy" /><figcaption>Always together</figcaption></figure>
+            <figure class="memory-card"><img src="gambar/IMG_5107.PNG" alt="Momen santai bersama" loading="lazy" /><figcaption>Our little world</figcaption></figure>
+            <figure class="memory-card"><img src="gambar/IMG_3653.JPG" alt="Langit dan wahana perjalanan" loading="lazy" /><figcaption>Good days</figcaption></figure>
+            <figure class="memory-card"><img src="gambar/IMG_3643.JPG" alt="Bersama di depan wahana" loading="lazy" /><figcaption>Made of moments</figcaption></figure>
+            <figure class="memory-card"><img src="gambar/IMG_3101.JPG" alt="Kenangan berdua di tempat indah" loading="lazy" /><figcaption>Side by side</figcaption></figure>
+            <figure class="memory-card"><img src="gambar/IMG_2080.JPG" alt="Kenangan perjalanan bersama" loading="lazy" /><figcaption>Take me there</figcaption></figure>
+            <figure class="memory-card"><img src="gambar/gambar3.JPG" alt="Momen bersama di kafe" loading="lazy" /><figcaption>Slow afternoons</figcaption></figure>
+            <figure class="memory-card"><img src="gambar/gambar1.jpg" alt="Potret Efra" loading="lazy" /><figcaption>My favorite person</figcaption></figure>
+          </div>
+        </div>
+      </section>
+
+      <!-- Contact Section -->
+      <section class="py-32 px-page-margin bg-background relative border-t border-outline-variant/30" id="contact">
+        <div class="max-w-[800px] mx-auto text-center">
+          <div
+            class="bg-surface-bright paper-sheet p-8 sm:p-12 rounded-xl shadow-xl border border-outline-variant/40 relative">
+            <div class="absolute -top-4 left-1/2 -translate-x-1/2 w-24 h-7 washi-tape bg-primary/30 rotate-[-1deg]">
+            </div>
+            <span class="material-symbols-outlined text-primary text-5xl mb-4 block">mail</span>
+            <h2 class="font-headline-md text-3xl text-primary mb-4 italic">Get in Touch</h2>
+            <p class="text-on-surface-variant mb-8 max-w-md mx-auto">Have questions, feedback, or ideas for Scrapbook
+              Puzzle? We'd love to hear from you!</p>
+            <div class="flex flex-wrap justify-center gap-4">
+              <a href="https://www.instagram.com/bibhorizon._/" target="_blank" rel="noopener noreferrer"
+                class="px-6 py-3 bg-primary text-white rounded-full font-label-ui shadow-sm hover:scale-105 active:scale-95 transition-all flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">alternate_email</span> Instagram
+              </a>
+              <a href="mailto:hello@scrapbookpuzzle.com"
+                class="px-6 py-3 bg-secondary text-white rounded-full font-label-ui shadow-sm hover:scale-105 active:scale-95 transition-all flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">mail</span> Email Us
+              </a>
+              <button id="birthdayLetterBtn" type="button"
+                class="px-6 py-3 bg-surface-container-highest border border-outline/20 rounded-full font-label-ui text-on-surface shadow-sm hover:scale-105 active:scale-95 transition-all flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">mail</span> Buka Surat
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+  </div>
+
+  <div id="birthdayLetterModal" class="birthday-letter-modal fixed inset-0 z-[300] hidden items-center justify-center p-5"
+    role="dialog" aria-modal="true" aria-labelledby="letterTitle">
+    <article class="birthday-letter relative w-full max-w-xl rounded-xl border border-primary/20 px-6 py-10 sm:px-12 sm:py-12 text-on-surface">
+      <button id="closeBirthdayLetterBtn" type="button"
+        class="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full text-on-surface-variant hover:bg-primary/10 hover:text-primary transition-colors"
+        aria-label="Tutup surat">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+      <div class="text-center">
+        <span class="material-symbols-outlined text-5xl text-primary" style="font-variation-settings: 'FILL' 1;">mail</span>
+        <p class="mt-4 font-label-ui text-xs uppercase tracking-[0.25em] text-secondary">A little birthday letter</p>
+        <h2 id="letterTitle" class="mt-3 font-headline-md text-2xl sm:text-3xl italic text-primary">Happy Birthday, sayangku</h2>
+      </div>
+      <div class="mt-8 space-y-4 font-body-lg text-sm sm:text-base leading-8">
+        <p>Untuk <strong class="text-primary">Efra Angelica Murni Pangribuan</strong>,</p>
+        <p>Selamat ulang tahun, sayangku. Semoga hari ini dipenuhi senyum, kejutan kecil yang manis, dan semua hal baik yang pantas kamu dapatkan.</p>
+        <p>Terima kasih sudah menjadi seseorang yang begitu berarti. Bersamamu, momen sederhana pun terasa istimewa dan layak untuk disimpan selamanya.</p>
+        <p>Semoga langkahmu selalu dimudahkan, impianmu satu per satu menjadi nyata, dan hatimu selalu dikelilingi cinta. Aku ingin terus membuat lebih banyak kenangan indah bersamamu.</p>
+        <p class="pt-2 text-right font-headline-md text-lg italic text-primary">Dengan cinta,<br />seseorang yang selalu menyayangimu</p>
+      </div>
+      <div class="mt-6 text-center text-primary/70">
+        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">favorite</span>
+      </div>
+    </article>
+  </div>
+
+  <script>
+    // Logic for landing page specifically
+    const lpCursor = document.getElementById('cursor');
+    if (lpCursor) {
+      let mouseX = 0, mouseY = 0;
+      let cursorX = 0, cursorY = 0;
+
+      document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+      });
+
+      function animateCursor() {
+        let dx = mouseX - cursorX;
+        let dy = mouseY - cursorY;
+
+        cursorX += dx * 0.15;
+        cursorY += dy * 0.15;
+
+        lpCursor.style.left = cursorX + 'px';
+        lpCursor.style.top = cursorY + 'px';
+
+        requestAnimationFrame(animateCursor);
+      }
+      animateCursor();
+
+      document.addEventListener('mouseover', (e) => {
+        if (e.target.closest('a, button, .cursor-pointer, input, select, textarea')) {
+          lpCursor.style.transform = 'scale(1.5) rotate(15deg)';
+          lpCursor.style.color = '#5b7892';
+        }
+      });
+      document.addEventListener('mouseout', (e) => {
+        if (e.target.closest('a, button, .cursor-pointer, input, select, textarea')) {
+          lpCursor.style.transform = 'scale(1) rotate(0deg)';
+          lpCursor.style.color = '#4c747e';
+        }
+      });
+    }
+
+    document.querySelectorAll('.floating').forEach(photo => {
+      photo.addEventListener('mouseenter', () => {
+        photo.style.animationPlayState = 'paused';
+        photo.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+        photo.style.transform = 'scale(1.1) rotate(0deg)';
+        photo.style.zIndex = '30';
+      });
+      photo.addEventListener('mouseleave', () => {
+        photo.style.animationPlayState = 'running';
+        photo.style.transform = '';
+        photo.style.zIndex = '';
+      });
+    });
+
+    // Global Navigation & Browser History State Manager (Back Button Support)
+    window.navigateToScreen = function (screenId, pushHistory = true) {
+      const screens = ['landingPage', 'welcomeScreen', 'app', 'printingScreen', 'editPhotoScreen'];
+
+      screens.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          if (id === screenId) {
+            el.classList.remove('hidden');
+            el.style.display = (id === 'app') ? 'flex' : 'flex';
+          } else {
+            el.classList.add('hidden');
+            el.style.display = 'none';
+          }
+        }
+      });
+
+      if (pushHistory) {
+        history.pushState({ screen: screenId }, '', window.location.pathname);
+      }
+
+      if (typeof window.onScreenChange === 'function') {
+        window.onScreenChange(screenId);
+      }
+    };
+
+    // Initialize initial state if missing
+    if (!history.state) {
+      history.replaceState({ screen: 'landingPage' }, '', window.location.pathname);
+    }
+
+    // Handle Browser Back / Forward buttons
+    window.addEventListener('popstate', (e) => {
+      if (e.state && e.state.screen) {
+        window.navigateToScreen(e.state.screen, false);
+      } else {
+        window.navigateToScreen('landingPage', false);
+      }
+    });
+
+    const landingStartBtn = document.getElementById('landingStartBtn');
+    const birthdayIntro = document.getElementById('birthdayIntro');
+    const candleBtn = document.getElementById('candleBtn');
+    const candleHint = document.getElementById('candleHint');
+    const enterBirthdayBtn = document.getElementById('enterBirthdayBtn');
+    const romanticMusic = document.getElementById('romanticMusic');
+    const musicToggle = document.getElementById('musicToggle');
+    const musicIcon = musicToggle?.querySelector('.material-symbols-outlined');
+    const musicLabel = musicToggle?.querySelector('.music-label');
+
+    function updateMusicControl() {
+      const isPlaying = romanticMusic && !romanticMusic.paused;
+      musicToggle?.classList.toggle('is-playing', isPlaying);
+      musicToggle?.setAttribute('aria-pressed', String(isPlaying));
+      musicToggle?.setAttribute('aria-label', isPlaying ? 'Matikan musik romantis' : 'Putar musik romantis');
+      if (musicIcon) musicIcon.textContent = isPlaying ? 'music_note' : 'music_off';
+      if (musicLabel) musicLabel.textContent = isPlaying ? 'Musik nyala' : 'Musik mati';
+    }
+
+    function playRomanticMusic() {
+      if (!romanticMusic) return;
+      romanticMusic.volume = 0.35;
+      romanticMusic.play().then(updateMusicControl).catch(updateMusicControl);
+    }
+
+    romanticMusic?.addEventListener('play', updateMusicControl);
+    romanticMusic?.addEventListener('pause', updateMusicControl);
+    musicToggle?.addEventListener('click', () => {
+      if (romanticMusic?.paused) {
+        playRomanticMusic();
+      } else {
+        romanticMusic?.pause();
+      }
+    });
+    playRomanticMusic();
+
+    candleBtn?.addEventListener('click', () => {
+      playRomanticMusic();
+      birthdayIntro.classList.add('wished');
+      candleBtn.setAttribute('aria-label', 'Lilin sudah dipadamkan');
+      candleHint.textContent = 'harapanmu sudah dikirim ✦';
+      enterBirthdayBtn.disabled = false;
+      enterBirthdayBtn.focus();
+    });
+
+    enterBirthdayBtn?.addEventListener('click', () => {
+      playRomanticMusic();
+      birthdayIntro.classList.add('leaving');
+      setTimeout(() => {
+        birthdayIntro.hidden = true;
+        window.navigateToScreen('landingPage', false);
+      }, 800);
+    });
+
+    if (landingStartBtn) {
+      landingStartBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        playRomanticMusic();
+        window.navigateToScreen('welcomeScreen');
+        if (typeof window.preloadHandLandmarker === 'function') {
+          window.preloadHandLandmarker();
+        }
+      });
+    }
+
+    const birthdayLetterBtn = document.getElementById('birthdayLetterBtn');
+    const birthdayLetterModal = document.getElementById('birthdayLetterModal');
+    const closeBirthdayLetterBtn = document.getElementById('closeBirthdayLetterBtn');
+
+    function closeBirthdayLetter() {
+      birthdayLetterModal.classList.add('hidden');
+      birthdayLetterModal.classList.remove('flex');
+    }
+
+    if (birthdayLetterBtn && birthdayLetterModal) {
+      birthdayLetterBtn.addEventListener('click', () => {
+        birthdayLetterModal.classList.remove('hidden');
+        birthdayLetterModal.classList.add('flex');
+        closeBirthdayLetterBtn?.focus();
+      });
+
+      closeBirthdayLetterBtn?.addEventListener('click', closeBirthdayLetter);
+      birthdayLetterModal.addEventListener('click', (event) => {
+        if (event.target === birthdayLetterModal) closeBirthdayLetter();
+      });
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closeBirthdayLetter();
+      });
+    }
+
+    // Global Navigation Click Handler
+    document.addEventListener('click', (e) => {
+      // Handle logo specifically
+      const logoLink = e.target.closest('.nav-logo-btn');
+      if (logoLink) {
+        e.preventDefault();
+        window.navigateToScreen('landingPage');
+        setTimeout(() => {
+          document.getElementById('landingPage').scrollTo({ top: 0, behavior: 'smooth' });
+        }, 50);
+        return;
+      }
+
+      // Handle all other nav links
+      const hashLink = e.target.closest('nav a[href^="#"]');
+      if (hashLink) {
+        let targetId = hashLink.getAttribute('href').substring(1);
+        if (targetId === 'landingPage') targetId = 'hero'; // map home link to hero
+
+        const validSections = ['hero', 'how-it-works', 'features', 'memories', 'contact'];
+        if (validSections.includes(targetId)) {
+          e.preventDefault();
+          window.navigateToScreen('landingPage');
+          setTimeout(() => {
+            if (targetId === 'hero') {
+              document.getElementById('landingPage').scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+              document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth' });
+            }
+          }, 50);
+        }
+      }
+    });
+
+    // Active Navigation Observer
+    document.addEventListener("DOMContentLoaded", () => {
+      const sections = document.querySelectorAll('#hero, #how-it-works, #features, #memories, #contact');
+      const navLinks = document.querySelectorAll('nav a[href^="#"]');
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            let activeId = entry.target.id;
+            if (activeId === 'hero') activeId = 'landingPage'; // match href target
+
+            navLinks.forEach(link => {
+              if (link.getAttribute('href') === '#' + activeId) {
+                link.classList.remove('text-on-surface-variant');
+                link.classList.add('text-secondary', 'font-bold');
+              } else {
+                link.classList.add('text-on-surface-variant');
+                link.classList.remove('text-secondary', 'font-bold');
+              }
+            });
+          }
+        });
+      }, { 
+        root: document.getElementById('landingPage'), 
+        threshold: 0.4 
+      });
+
+      sections.forEach(section => observer.observe(section));
+    });
+  </script>
+
+
+  <!-- ================= WELCOME SCREEN ================= -->
+  <div id="welcomeScreen"
+    class="fixed inset-0 z-[150] hidden flex-col items-center bg-background overflow-y-auto overflow-x-hidden animate-page">
+    <!-- Header (Matching Landing Page) -->
+    <header class="fixed top-4 left-0 w-full z-50 px-4 md:px-8">
+      <div
+        class="flex justify-between items-center w-full max-w-[1400px] mx-auto px-8 py-4 bg-background/90 backdrop-blur-md shadow-md rounded-full border border-outline-variant/20">
+        <div class="flex items-center gap-4 md:gap-6">
+          <a class="flex items-center justify-center w-10 h-10 rounded-full bg-surface-container-highest text-on-surface-variant hover:text-primary hover:bg-surface-dim transition-colors nav-home-btn"
+            href="#landingPage" title="Kembali ke Beranda">
+            <span class="material-symbols-outlined">arrow_back</span>
+          </a>
+          <a class="flex items-center gap-2 font-headline-md text-headline-md text-primary italic transition-opacity hover:opacity-80 nav-logo-btn"
+            href="#landingPage">
+            <span class="material-symbols-outlined">auto_awesome</span>
+            <span class="hidden sm:inline">Scrapbook Puzzle</span>
+          </a>
+        </div>
+        <nav class="hidden md:flex gap-8 font-label-ui text-[10px] md:text-[11px] uppercase tracking-widest">
+          <button class="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1">
+            <span class="material-symbols-outlined text-[18px]">help_outline</span> Rules
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <main class="flex-grow pt-32 pb-40 flex flex-col items-center px-4 w-full">
+      <!-- Main Paper Container -->
+      <div
+        class="relative z-10 w-full max-w-[1000px] bg-white paper-sheet rounded-lg p-12 md:p-20 flex flex-col items-center border border-outline-variant/30 shadow-2xl">
+        <!-- Washi Tape Decorations -->
+        <div class="absolute top-4 right-10 w-24 h-8 washi-tape bg-secondary/30 rotate-[5deg] z-20"></div>
+        <div class="absolute -top-3 left-1/4 w-32 h-10 washi-tape bg-primary/10 -rotate-2 z-20"></div>
+
+        <!-- Title Section -->
+        <div class="text-center mb-16">
+          <h1 class="font-display-lg text-4xl md:text-5xl text-on-surface uppercase tracking-tighter mb-4">
+            Scrapbook Puzzle
+          </h1>
+          <div class="flex items-center justify-center gap-4 text-on-surface-variant italic text-sm">
+            <span class="w-12 h-[1px] bg-outline-variant"></span>
+            <p>Turn your memories into a puzzle</p>
+            <span class="w-12 h-[1px] bg-outline-variant"></span>
+          </div>
+        </div>
+
+        <!-- Grid Size Selection Styled as Polaroids -->
+        <section class="w-full max-w-2xl mb-16">
+          <h2
+            class="font-label-ui text-xs text-on-surface-variant uppercase tracking-[0.2em] mb-10 text-center flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">grid_on</span> Select Grid Size
+          </h2>
+          <div class="flex flex-wrap gap-12 justify-center" id="gridSizeSelector">
+            <!-- 3x3 Polaroid -->
+            <button data-grid="3"
+              class="grid-btn group float-item relative w-48 h-64 bg-white p-3 shadow-lg border border-primary hover:scale-105 transition-all duration-300"
+              style="--rot: -3deg;">
+              <div class="absolute -top-4 left-1/2 -translate-x-1/2 w-12 h-6 washi-tape bg-secondary/20 rotate-1 z-10">
+              </div>
+              <div
+                class="w-full h-44 bg-slate-50 border border-outline-variant/10 flex items-center justify-center mb-3 overflow-hidden pointer-events-none">
+                <div class="grid grid-cols-3 gap-1 w-full h-full p-2 opacity-40">
+                  <div class="bg-secondary/40"></div>
+                  <div class="bg-secondary/40"></div>
+                  <div class="bg-secondary/40"></div>
+                  <div class="bg-secondary/40"></div>
+                  <div class="bg-secondary/40"></div>
+                  <div class="bg-secondary/40"></div>
+                  <div class="bg-secondary/40"></div>
+                  <div class="bg-secondary/40"></div>
+                  <div class="bg-secondary/40"></div>
+                </div>
+              </div>
+              <span class="font-headline-md text-xl text-secondary pointer-events-none">3 x 3</span>
+              <div class="active-indicator absolute top-2 right-2 opacity-100 transition-opacity">
+                <span class="material-symbols-outlined text-secondary"
+                  style="font-variation-settings: 'FILL' 1;">check_circle</span>
+              </div>
+            </button>
+            <!-- 4x4 Polaroid -->
+            <button data-grid="4"
+              class="grid-btn group float-item relative w-48 h-64 bg-white p-3 shadow-lg border border-outline-variant/20 hover:scale-105 transition-all duration-300"
+              style="--rot: 2deg;">
+              <div class="absolute -top-4 left-1/2 -translate-x-1/2 w-12 h-6 washi-tape bg-primary/10 -rotate-2 z-10">
+              </div>
+              <div
+                class="w-full h-44 bg-slate-50 border border-outline-variant/10 flex items-center justify-center mb-3 overflow-hidden pointer-events-none">
+                <div class="grid grid-cols-4 gap-1 w-full h-full p-2 opacity-40">
+                  <div class="bg-primary/30"></div>
+                  <div class="bg-primary/30"></div>
+                  <div class="bg-primary/30"></div>
+                  <div class="bg-primary/30"></div>
+                  <div class="bg-primary/30"></div>
+                  <div class="bg-primary/30"></div>
+                  <div class="bg-primary/30"></div>
+                  <div class="bg-primary/30"></div>
+                  <div class="bg-primary/30"></div>
+                  <div class="bg-primary/30"></div>
+                  <div class="bg-primary/30"></div>
+                  <div class="bg-primary/30"></div>
+                  <div class="bg-primary/30"></div>
+                  <div class="bg-primary/30"></div>
+                  <div class="bg-primary/30"></div>
+                  <div class="bg-primary/30"></div>
+                </div>
+              </div>
+              <span class="font-headline-md text-xl text-primary pointer-events-none">4 x 4</span>
+              <div class="active-indicator absolute top-2 right-2 opacity-0 transition-opacity">
+                <span class="material-symbols-outlined text-secondary"
+                  style="font-variation-settings: 'FILL' 1;">check_circle</span>
+              </div>
+            </button>
+          </div>
+        </section>
+
+        <!-- Layout Selection -->
+        <section class="w-full max-w-2xl mb-16">
+          <h2
+            class="font-label-ui text-xs text-on-surface-variant uppercase tracking-[0.2em] mb-10 text-center flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">dashboard</span> Choose Layout
+          </h2>
+          <div class="flex flex-wrap gap-8 justify-center" id="layoutSelector">
+            <!-- 2 Photos Polaroid -->
+            <button data-layout="2"
+              class="layout-btn group float-item relative w-40 h-56 bg-white p-3 shadow-lg border border-outline-variant/20 hover:scale-105 transition-all duration-300"
+              style="--rot: 2deg;">
+              <div class="absolute -top-4 left-1/2 -translate-x-1/2 w-12 h-6 washi-tape bg-secondary/20 rotate-1 z-10">
+              </div>
+              <div
+                class="w-full h-36 bg-slate-50 border border-outline-variant/10 flex items-center justify-center mb-3 overflow-hidden pointer-events-none">
+                <span class="material-symbols-outlined text-secondary/30 text-5xl">filter_2</span>
+              </div>
+              <span class="font-headline-md text-lg text-secondary pointer-events-none">2 Photos</span>
+              <div class="active-indicator absolute top-2 right-2 opacity-0 transition-opacity">
+                <span class="material-symbols-outlined text-secondary"
+                  style="font-variation-settings: 'FILL' 1;">check_circle</span>
+              </div>
+            </button>
+            <!-- 3 Photos Polaroid (Default Active) -->
+            <button data-layout="3"
+              class="layout-btn group float-item relative w-40 h-56 bg-white p-3 shadow-lg border border-primary hover:scale-105 transition-all duration-300"
+              style="--rot: -2deg;">
+              <div class="absolute -top-4 left-1/2 -translate-x-1/2 w-12 h-6 washi-tape bg-primary/10 -rotate-2 z-10">
+              </div>
+              <div
+                class="w-full h-36 bg-slate-50 border border-outline-variant/10 flex items-center justify-center mb-3 overflow-hidden pointer-events-none">
+                <span class="material-symbols-outlined text-primary/30 text-5xl">filter_3</span>
+              </div>
+              <span class="font-headline-md text-lg text-primary pointer-events-none">3 Photos</span>
+              <div class="active-indicator absolute top-2 right-2 opacity-100 transition-opacity">
+                <span class="material-symbols-outlined text-secondary"
+                  style="font-variation-settings: 'FILL' 1;">check_circle</span>
+              </div>
+            </button>
+            <!-- 4 Photos Polaroid -->
+            <button data-layout="4"
+              class="layout-btn group float-item relative w-40 h-56 bg-white p-3 shadow-lg border border-outline-variant/20 hover:scale-105 transition-all duration-300"
+              style="--rot: 1deg;">
+              <div class="absolute -top-4 left-1/2 -translate-x-1/2 w-12 h-6 washi-tape bg-secondary/20 rotate-1 z-10">
+              </div>
+              <div
+                class="w-full h-36 bg-slate-50 border border-outline-variant/10 flex items-center justify-center mb-3 overflow-hidden pointer-events-none">
+                <span class="material-symbols-outlined text-secondary/30 text-5xl">filter_4</span>
+              </div>
+              <span class="font-headline-md text-lg text-secondary pointer-events-none">4 Photos</span>
+              <div class="active-indicator absolute top-2 right-2 opacity-0 transition-opacity">
+                <span class="material-symbols-outlined text-secondary"
+                  style="font-variation-settings: 'FILL' 1;">check_circle</span>
+              </div>
+            </button>
+          </div>
+        </section>
+
+        <!-- Filter Selection -->
+        <section class="w-full max-w-2xl mb-16 text-center" id="filterSelector">
+          <h2
+            class="font-label-ui text-xs text-on-surface-variant uppercase tracking-[0.2em] mb-8 text-center flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">filter_vintage</span> Choose Filter
+          </h2>
+          <div class="flex flex-wrap justify-center gap-4">
+            <button data-filter="none"
+              class="filter-btn px-6 py-2 bg-on-surface-variant text-white border border-transparent rounded-full font-label-ui shadow-sm rotate-1 hover:scale-105 active:scale-95 transition-all">Original</button>
+            <button data-filter="bw"
+              class="filter-btn px-6 py-2 bg-surface-container-highest border border-outline/20 rounded-full font-label-ui text-on-surface shadow-sm -rotate-1 hover:scale-105 hover:bg-surface-dim active:scale-95 transition-all">B&W</button>
+            <button data-filter="vintage"
+              class="filter-btn px-6 py-2 bg-surface-container-highest border border-outline/20 rounded-full font-label-ui text-on-surface shadow-sm hover:scale-105 hover:bg-surface-dim active:scale-95 transition-all">Vintage</button>
+            <button data-filter="korean"
+              class="filter-btn px-6 py-2 bg-surface-container-highest border border-outline/20 rounded-full font-label-ui text-on-surface shadow-sm -rotate-2 hover:scale-105 hover:bg-surface-dim active:scale-95 transition-all">Korean</button>
+            <button data-filter="warm"
+              class="filter-btn px-6 py-2 bg-surface-container-highest border border-outline/20 rounded-full font-label-ui text-on-surface shadow-sm hover:scale-105 hover:bg-surface-dim active:scale-95 transition-all">Warm
+              Glow</button>
+            <button data-filter="cool"
+              class="filter-btn px-6 py-2 bg-surface-container-highest border border-outline/20 rounded-full font-label-ui text-on-surface shadow-sm rotate-1 hover:scale-105 hover:bg-surface-dim active:scale-95 transition-all">Cool
+              Blue</button>
+          </div>
+        </section>
+
+        <!-- Prominent Start Button -->
+        <div class="relative mt-8">
+          <button id="startBtn"
+            class="group relative flex items-center justify-center px-16 py-6 bg-secondary text-white rounded-xl font-headline-md text-xl tracking-widest transition-all hover:scale-105 active:scale-95 stitched-border shadow-xl">
+            <span class="relative z-10 flex items-center gap-3">
+              START CREATING
+              <span class="material-symbols-outlined transition-transform group-hover:rotate-12">photo_camera</span>
+            </span>
+            <div class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"
+              style="background-image: url('https://www.transparenttextures.com/patterns/denim.png');"></div>
+          </button>
+          <div class="absolute -right-16 -bottom-10 float-item" style="--rot: 12deg;">
+            <span class="material-symbols-outlined text-secondary text-[56px] opacity-30"
+              style="font-variation-settings: 'FILL' 1;">extension</span>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ================= TUTORIAL SCREEN ================= -->
+  <div id="tutorialScreen" class="fixed inset-0 z-[200] hidden flex-col items-center justify-center bg-black/80 backdrop-blur-md animate-page">
+    <div class="bg-surface/90 backdrop-blur border border-outline/20 p-8 rounded-3xl shadow-2xl max-w-lg w-[90%] mx-auto flex flex-col items-center text-center">
+      <h2 class="font-headline-md text-2xl text-primary mb-2">Panduan Gestur Tangan</h2>
+      <p class="text-on-surface-variant font-label-ui mb-8">Pahami 3 gestur mudah ini sebelum mulai bermain.</p>
+      
+      <div class="flex flex-col gap-6 w-full text-left">
+        <!-- Step 1 -->
+        <div class="flex items-center gap-4">
+          <div class="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-primary text-3xl">pinch</span>
+          </div>
+          <div>
+            <h3 class="font-headline-md text-lg text-on-surface mb-1">1. Capture</h3>
+            <p class="text-sm text-on-surface-variant font-label-ui">Gunakan gestur mencubit (Pinch) untuk mengambil 3 foto.</p>
+          </div>
+        </div>
+        
+        <!-- Step 2 -->
+        <div class="flex items-center gap-4">
+          <div class="w-14 h-14 bg-secondary/10 rounded-full flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-secondary text-3xl">pan_tool_alt</span>
+          </div>
+          <div>
+            <h3 class="font-headline-md text-lg text-on-surface mb-1">2. Assemble</h3>
+            <p class="text-sm text-on-surface-variant font-label-ui">Geser kepingan (Drag & Drop) ke posisi yang benar menggunakan gestur Pinch.</p>
+          </div>
+        </div>
+        
+        <!-- Step 3 -->
+        <div class="flex items-center gap-4">
+          <div class="w-14 h-14 bg-tertiary/10 rounded-full flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-tertiary text-3xl">front_hand</span>
+          </div>
+          <div>
+            <h3 class="font-headline-md text-lg text-on-surface mb-1">3. Save</h3>
+            <p class="text-sm text-on-surface-variant font-label-ui">Kepalkan tangan (Fist) untuk menyimpan hasil karyamu ke galeri.</p>
+          </div>
+        </div>
+      </div>
+      
+      <button id="tutorialGotItBtn" class="mt-10 bg-primary text-on-primary font-headline-md px-8 py-3 rounded-full hover:scale-105 active:scale-95 transition-all shadow-lg text-lg">
+        Got it, Start Camera!
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= MAIN APP ================= -->
+  <div id="app" style="display: none;" class="w-full h-screen relative bg-surface-bright">
+
+    <div id="stage" class="w-full h-full relative flex items-center justify-center">
+      <video id="webcam" playsinline autoplay muted class="hidden"></video>
+      <canvas id="sceneCanvas" class="w-full h-full object-contain transition-[filter] duration-500"></canvas>
+
+      <div
+        class="hud-top absolute top-4 left-4 right-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 z-10 pointer-events-none">
+        <div class="flex items-center gap-2">
+          <div
+            class="brand bg-white/90 px-3 h-7 rounded-full shadow-sm font-headline-md text-primary flex items-center text-[10px]"
+            style="font-family: var(--mono)">
+            PUZZLE·CAM <small class="text-[8px] ml-1 opacity-80">hand-frame capture</small>
+          </div>
+          <button id="fullscreenBtn"
+            class="pointer-events-auto bg-white/90 h-7 w-7 rounded-full shadow-sm flex items-center justify-center text-primary hover:bg-white transition-transform hover:scale-105 active:scale-95"
+            title="Toggle Fullscreen">
+            <span class="material-symbols-outlined text-[14px]" id="fullscreenIcon">fullscreen</span>
+          </button>
+        </div>
+        <div
+          class="status-pill self-end md:self-auto bg-white/90 px-3 h-7 rounded-full shadow-sm flex items-center gap-2 text-on-surface-variant font-label-ui text-[9.5px]">
+          <span id="statusDot" class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+          <span id="statusText">starting camera…</span>
+        </div>
+      </div>
+
+      <div id="puzzleSolvedBanner"
+        class="absolute bottom-20 left-1/2 -translate-x-1/2 bg-[#fffdf5] text-primary px-6 py-3 rounded-2xl shadow-xl hidden z-50 text-center border-2 border-outline-variant/50 animate-bounce max-w-[90vw]"
+        style="font-family: var(--mono)">
+        <div class="font-headline-md text-xl md:text-2xl font-bold tracking-wider">PUZZLE SOLVED!</div>
+      </div>
+
+      <div id="progressBadge"
+        class="progress-badge absolute bottom-4 left-4 bg-white/90 px-4 py-2 rounded-lg shadow-md font-label-ui text-primary hidden z-10">
+        <span id="progressText">0 / 9 pieces placed</span>
+      </div>
+
+      <div class="fixed inset-0 z-50 pointer-events-none" id="progressOverlay" style="display: none;">
+        <div
+          class="absolute top-4 left-1/2 -translate-x-1/2 bg-surface/90 backdrop-blur px-3 h-7 rounded-full shadow-md font-label-ui flex items-center justify-center gap-1.5 pointer-events-auto">
+          <span class="material-symbols-outlined text-primary text-[14px]">imagesmode</span>
+          <span id="galleryCount" class="text-on-surface font-bold text-[10px]">0 / 3</span>
+        </div>
+        <div id="galleryStrip"
+          class="absolute bottom-6 right-4 flex flex-col gap-2 scale-75 origin-bottom-right pointer-events-auto"></div>
+        <div id="galleryEmpty" class="hidden"></div>
+      </div>
+
+      <div id="countdownOverlay"
+        class="absolute inset-0 z-50 pointer-events-none hidden flex-col items-center justify-center bg-black/40 backdrop-blur-sm">
+      </div>
+
+      <div id="loadingOverlay" class="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-50">
+        <div class="loader-text font-headline-md text-primary mb-6" id="loaderText" style="font-family: var(--mono)">
+          loading HandLandmarker model…</div>
+        <div class="animate-spin text-primary">
+          <span class="material-symbols-outlined text-5xl">autorenew</span>
+        </div>
+        <button type="button" id="loaderRetry"
+          class="mt-4 px-6 py-2 bg-primary text-white rounded-full font-label-ui hidden hover:opacity-90">try
+          again</button>
+      </div>
+
+      <div id="errorBanner"
+        class="absolute top-20 left-1/2 -translate-x-1/2 bg-error text-white px-6 py-3 rounded-md shadow-lg hidden z-50 text-center max-w-[80%] font-label-ui">
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ================= PRINTING ANIMATION SCREEN ================= -->
+  <div id="printingScreen"
+    class="fixed inset-0 bg-background z-[110] hidden flex-col items-center justify-center desk-texture overflow-hidden">
+    <h2
+      class="font-headline-md text-2xl md:text-4xl text-primary mb-12 md:mb-16 typewriter-font drop-shadow-sm text-center">
+      Printing your memories...</h2>
+
+    <div class="relative flex flex-col items-center w-full max-w-sm">
+      <!-- 3D Printer Slot -->
+      <div
+        class="w-48 md:w-56 h-8 bg-white rounded-xl shadow-[0_4px_10px_rgba(0,0,0,0.1),inset_0_-4px_10px_rgba(0,0,0,0.05)] border border-outline-variant/30 flex items-center justify-center relative z-20">
+        <div class="w-32 md:w-40 h-2.5 bg-[#2a2a2a] rounded-full shadow-inner"></div>
+      </div>
+
+      <!-- Photo Strip container with perspective -->
+      <div class="relative w-28 md:w-36 h-[220px] md:h-[280px] overflow-hidden -mt-4 z-10" style="perspective: 1000px;">
+        <!-- The image itself that slides down -->
+        <img id="printingImage" src=""
+          class="w-full absolute top-0 left-0 shadow-lg transform -translate-y-[120%] border-4 border-white transition-transform duration-[3000ms] ease-out">
+      </div>
+    </div>
+  </div>
+
+  <div id="editPhotoScreen"
+    class="desk-texture fixed inset-0 bg-background z-[100] hidden overflow-y-auto animate-page">
+    <header class="fixed top-4 left-0 w-full z-[210] px-4 md:px-8">
+      <div
+        class="flex justify-between items-center w-full max-w-[1400px] mx-auto px-8 py-4 bg-background/90 backdrop-blur-md shadow-md rounded-full border border-outline-variant/20">
+        <a class="flex items-center gap-2 font-headline-md text-headline-md text-primary italic transition-opacity hover:opacity-80 active:-rotate-1 active:scale-95 transition-transform nav-logo-btn"
+          href="#landingPage">
+          <span class="material-symbols-outlined" data-original-icon="auto_awesome">auto_awesome</span>
+          <span>Scrapbook Puzzle</span>
+        </a>
+        <nav class="hidden md:flex gap-8 font-label-ui text-[10px] md:text-[11px] uppercase tracking-widest">
+          <a class="text-secondary font-bold hover:opacity-80 transition-opacity nav-home-btn"
+            href="#landingPage">home</a>
+          <a class="text-on-surface-variant hover:text-primary transition-colors" href="#how-it-works">how it works</a>
+          <a class="text-on-surface-variant hover:text-primary transition-colors" href="#features">features</a>
+          <a class="text-on-surface-variant hover:text-primary transition-colors" href="#">archive</a>
+          <a class="text-on-surface-variant hover:text-primary transition-colors" href="#">contact</a>
+        </nav>
+        <button class="md:hidden material-symbols-outlined text-on-surface">menu</button>
+      </div>
+    </header>
+
+    <!-- Floating Trash Bin for Stickers -->
+    <div id="trashBin"
+      class="fixed bottom-4 right-4 sm:bottom-8 sm:right-8 w-14 h-14 sm:w-16 sm:h-16 bg-error-container text-on-error-container border-2 border-dashed border-error/50 rounded-full flex flex-col items-center justify-center opacity-70 transition-all duration-200 z-[150] shadow-lg">
+      <span class="material-symbols-outlined text-2xl sm:text-3xl">delete</span>
+    </div>
+
+    <!-- Main Workspace Area -->
+    <main class="max-w-[1200px] mx-auto p-2 sm:p-page-margin relative pt-24 sm:pt-32">
+      <!-- The Paper Sheet Canvas -->
+      <div
+        class="paper-texture min-h-[870px] rounded-lg shadow-inner p-4 sm:p-8 md:p-12 border border-outline-variant relative overflow-hidden flex flex-col md:flex-row gap-8 md:gap-12">
+        <!-- Left Side: The Printer and Photo Strip -->
+        <div class="flex-1 flex flex-col items-center relative w-full">
+          <!-- Metallic Printer Slot -->
+          <div
+            class="w-full max-w-[340px] sm:w-96 h-10 bg-gradient-to-b from-surface-container-highest to-surface-dim rounded-t-xl border-x-4 border-t-4 border-outline-variant relative z-20 flex justify-center items-end pb-1">
+            <div class="w-[85%] max-w-[280px] sm:w-80 h-2 bg-inverse-surface rounded-full opacity-40"></div>
+          </div>
+          <!-- Photobooth Strip Printing -->
+          <div
+            class="relative z-10 w-full max-w-[300px] sm:w-80 bg-surface-container-lowest border-[8px] sm:border-[12px] border-white photo-strip-shadow origin-top"
+            id="photoStrip">
+            <!-- Washi Tape Anchors (Decoration only) -->
+            <div class="absolute -top-4 -left-6 w-20 h-8 washi-tape opacity-80 rotate-[-15deg] z-30"></div>
+            <div
+              class="absolute -bottom-2 -right-4 w-16 h-8 washi-tape bg-secondary-fixed opacity-70 rotate-[25deg] z-30">
+            </div>
+            <!-- Strip Content -->
+            <div class="flex flex-col p-2 sm:p-4 space-y-4">
+              <canvas id="editCanvas"
+                class="max-w-full h-auto object-contain relative z-0 cursor-crosshair touch-none"></canvas>
+            </div>
+          </div>
+          <!-- Interactive Decor (Staple example) -->
+          <div class="absolute top-1/4 -right-8 transform rotate-12 opacity-40">
+            <span class="material-symbols-outlined text-outline text-4xl" data-icon="attach_file">attach_file</span>
+          </div>
+        </div>
+        <!-- Right Side: Controls Sidebar -->
+        <aside class="w-full md:w-80 flex flex-col gap-element-gap z-30">
+          <!-- Frame Color Section -->
+          <section class="bg-surface-container-low p-6 rounded-lg border border-dashed border-outline-variant relative">
+            <!-- Paper clip anchor -->
+            <div class="absolute -top-4 right-4 text-outline rotate-12">
+              <span class="material-symbols-outlined text-3xl" data-icon="push_pin">push_pin</span>
+            </div>
+            <h2 class="font-headline-md text-body-lg text-primary mb-4 flex items-center gap-2">
+              <span class="material-symbols-outlined" data-icon="palette">palette</span>
+              Frame Color
+            </h2>
+            <div class="grid grid-cols-5 gap-3" id="borderOptions">
+              <button data-border="#5b7892"
+                class="border-btn w-10 h-10 rounded-full bg-[#5b7892] border-2 border-transparent shadow-sm hover:scale-110 transition-transform active:scale-95"
+                title="Misty Blue"></button>
+              <button data-border="#c9e5e9"
+                class="border-btn w-10 h-10 rounded-full bg-[#c9e5e9] border-2 border-transparent shadow-sm hover:scale-110 transition-transform active:scale-95"
+                title="Ice Blue"></button>
+              <button data-border="#efeeea"
+                class="border-btn w-10 h-10 rounded-full bg-[#efeeea] border-2 border-transparent shadow-sm hover:scale-110 transition-transform active:scale-95"
+                title="Cream"></button>
+              <button data-border="#ffffff"
+                class="border-btn w-10 h-10 rounded-full bg-white border-2 border-primary shadow-sm hover:scale-110 transition-transform active:scale-95 active-border"
+                title="White"></button>
+              <button data-border="#abcae5"
+                class="border-btn w-10 h-10 rounded-full bg-[#abcae5] border-2 border-transparent shadow-sm hover:scale-110 transition-transform active:scale-95"
+                title="Blue"></button>
+            </div>
+          </section>
+          <!-- Stickers Section -->
+          <section class="bg-surface-container-low p-6 rounded-lg border border-dashed border-outline-variant">
+            <h2 class="font-headline-md text-body-lg text-primary mb-4 flex items-center gap-2">
+              <span class="material-symbols-outlined" data-icon="auto_fix_high">auto_fix_high</span>
+              Stickers
+            </h2>
+            <div class="grid grid-cols-4 gap-4">
+              <div
+                class="sticker-btn p-2 bg-white rounded shadow-sm flex items-center justify-center cursor-pointer hover:bg-primary-container transition-colors -rotate-3">
+                <span class="material-symbols-outlined text-primary" data-icon="star" data-weight="fill"
+                  style="font-variation-settings: 'FILL' 1;">star</span>
+              </div>
+              <div
+                class="sticker-btn p-2 bg-white rounded shadow-sm flex items-center justify-center cursor-pointer hover:bg-primary-container transition-colors rotate-2">
+                <span class="material-symbols-outlined text-secondary" data-icon="favorite" data-weight="fill"
+                  style="font-variation-settings: 'FILL' 1;">favorite</span>
+              </div>
+              <div
+                class="sticker-btn p-2 bg-white rounded shadow-sm flex items-center justify-center cursor-pointer hover:bg-primary-container transition-colors -rotate-1">
+                <span class="material-symbols-outlined text-tertiary" data-icon="mood" data-weight="fill"
+                  style="font-variation-settings: 'FILL' 1;">mood</span>
+              </div>
+              <div
+                class="sticker-btn p-2 bg-white rounded shadow-sm flex items-center justify-center cursor-pointer hover:bg-primary-container transition-colors rotate-6">
+                <span class="material-symbols-outlined text-[#ff9800]" data-icon="filter_vintage" data-weight="fill"
+                  style="font-variation-settings: 'FILL' 1;">filter_vintage</span>
+              </div>
+              <div
+                class="sticker-btn p-2 bg-white rounded shadow-sm flex items-center justify-center cursor-pointer hover:bg-primary-container transition-colors -rotate-6">
+                <span class="material-symbols-outlined text-on-secondary-container" data-icon="cloud" data-weight="fill"
+                  style="font-variation-settings: 'FILL' 1;">cloud</span>
+              </div>
+              <div
+                class="sticker-btn p-2 bg-white rounded shadow-sm flex items-center justify-center cursor-pointer hover:bg-primary-container transition-colors rotate-1">
+                <span class="material-symbols-outlined text-primary" data-icon="brightness_7" data-weight="fill"
+                  style="font-variation-settings: 'FILL' 1;">brightness_7</span>
+              </div>
+              <div
+                class="sticker-btn p-2 bg-white rounded shadow-sm flex items-center justify-center cursor-pointer hover:bg-primary-container transition-colors -rotate-2">
+                <span class="material-symbols-outlined text-secondary" data-icon="music_note" data-weight="fill"
+                  style="font-variation-settings: 'FILL' 1;">music_note</span>
+              </div>
+              <div
+                class="sticker-btn p-2 bg-white rounded shadow-sm flex items-center justify-center cursor-pointer hover:bg-primary-container transition-colors rotate-3">
+                <span class="material-symbols-outlined text-tertiary" data-icon="drawing" data-weight="fill"
+                  style="font-variation-settings: 'FILL' 1;">grading</span>
+              </div>
+            </div>
+          </section>
+          <!-- Caption Section -->
+          <section
+            class="bg-surface-container-low p-6 rounded-lg border border-dashed border-outline-variant flex flex-col gap-2">
+            <label class="font-headline-md text-body-lg text-primary">Memory Log:</label>
+            <input class="typewriter-input text-body-sm w-full py-2" placeholder="Type a memory here..." type="text" />
+            <p class="text-[10px] text-outline italic mt-1 font-headline-md">Captured: 10/24/1998</p>
+          </section>
+          <!-- Spacer -->
+          <div class="mt-4"></div>
+          <!-- CTA Button -->
+          <button id="savePhotoBtn"
+            class="bg-secondary text-on-secondary w-full py-4 px-6 rounded-lg shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 font-headline-md stitched-border group">
+            <span>Next: Assemble Puzzle</span>
+            <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform"
+              data-icon="arrow_forward">arrow_forward</span>
+          </button>
+          <button id="skipEditBtnTop"
+            class="mt-4 text-on-surface-variant font-label-ui hover:text-primary transition-colors px-4 py-2 w-full text-center">
+            Skip & Finish
+          </button>
+        </aside>
+      </div>
+      <!-- Scattered Decorations on the desk -->
+      <div class="absolute -bottom-10 -left-10 w-32 h-32 opacity-20 pointer-events-none">
+        <span class="material-symbols-outlined text-[120px]" data-icon="texture">texture</span>
+      </div>
+      <div class="absolute top-0 -right-20 w-48 h-48 opacity-10 pointer-events-none rotate-45">
+        <span class="material-symbols-outlined text-[200px]" data-icon="grid_4x4">grid_4x4</span>
+      </div>
+    </main>
+    <!-- Bottom Nav Bar (Mobile Only Filtered) -->
+    <nav
+      class="md:hidden fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[600px] bg-secondary dark:bg-secondary-fixed-dim rounded-t-full h-20 mb-4 flex justify-around items-center px-texture-padding pb-4 z-50 shadow-2xl border-t-4 border-dashed border-on-secondary/30">
+      <button id="skipEditBtn"
+        class="text-on-secondary opacity-70 p-3 hover:opacity-100 hover:scale-110 transition-transform duration-200">
+        <span class="material-symbols-outlined" data-icon="save">save</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <script type="module" src="./app.js"></script>
+  <div id="debug-error"
+    style="position:fixed; top:0; left:0; background:red; color:white; z-index:99999; font-size: 14px;"></div>
+  <script>
+    window.onerror = function (msg, src, line, col, err) {
+      document.getElementById("debug-error").innerHTML += msg + "<br/>" + (err ? err.stack : "") + "<hr/>";
+    };
+    window.addEventListener("unhandledrejection", function (e) {
+      document.getElementById("debug-error").innerHTML += "Unhandled: " + e.reason + "<hr/>";
+    });
+  </script>
+</body>
+
+</html>
